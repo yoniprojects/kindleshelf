@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Shelf &amp; Spine — Kindle</title>
+<style>
+  :root{
+    --ink:#000; --paper:#fff; --line:#000; --muted:#555;
+    --g1:#f3f3f3; --g2:#e2e2e2; --g3:#c7c7c7; --g4:#9a9a9a; --g5:#5f5f5f;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size:20px; line-height:1.35;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:10px 14px 60px; }
+  h1,h2,h3{ font-family: Georgia, serif; margin:0 0 10px; }
+  h1{ font-size:26px; }
+  h2{ font-size:22px; border-bottom:2px dotted var(--line); padding-bottom:6px; margin-bottom:14px; }
+  h3{ font-size:19px; margin-bottom:8px; }
+  p{ margin:6px 0; }
+  a{ color:var(--ink); }
+  .muted{ color:var(--muted); font-size:16px; }
+  hr{ border:none; border-top:2px dotted var(--line); margin:16px 0; }
+
+  /* halftone texture — used sparingly as accent fill, not on body text */
+  .halftone{
+    background-color:var(--g1);
+    background-image:radial-gradient(var(--g4) 1.1px, transparent 1.3px);
+    background-size:7px 7px;
+  }
+  .halftone-dark{
+    background-color:var(--g3);
+    background-image:radial-gradient(var(--g5) 1.3px, transparent 1.5px);
+    background-size:6px 6px;
+  }
+
+  /* top bar */
+  #topbar{ border-bottom:3px dotted var(--line); padding-bottom:8px; margin-bottom:14px; }
+  #topbar .row1{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
+  #userbtns button{ font-size:16px; padding:6px 12px; border:2px solid var(--line); background:var(--g1); }
+  #userbtns button.active{ background:var(--ink); color:var(--paper); border-style:solid; }
+  #nav{ display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+  #nav button{ flex:1 1 auto; font-size:18px; padding:10px 4px; border:2px solid var(--line); background:var(--g1); }
+  #nav button.active{ background:var(--ink); color:var(--paper); border-style:solid; }
+  #syncline{ font-size:13px; color:var(--muted); margin-top:4px; min-height:16px; }
+
+  /* generic controls: big, square, high-contrast, no shadows/animation */
+  button, select, input[type=text], input[type=number], input[type=date], textarea{
+    font-family:inherit; font-size:18px; color:var(--ink); background:var(--paper);
+    border:2px solid var(--line); border-radius:0; padding:9px 10px;
+  }
+  button{ cursor:pointer; min-height:44px; background:var(--g1); }
+  button:active{ background:var(--g3); }
+  button.big{ width:100%; font-size:20px; padding:14px; font-weight:bold; margin:6px 0; }
+  button.small{ font-size:15px; padding:5px 9px; min-height:34px; }
+  button.link{ border:none; text-decoration:underline; background:none; padding:2px 4px; min-height:auto; }
+  input[type=checkbox], input[type=radio]{ width:20px; height:20px; vertical-align:middle; margin-right:6px; }
+  label{ display:block; margin:8px 0 3px; font-weight:bold; font-size:16px; }
+  textarea{ width:100%; resize:vertical; font-family:monospace; font-size:15px; background:var(--paper); }
+  .full{ width:100%; }
+  .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .row > *{ flex:1 1 auto; }
+  .btnrow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .btnrow button{ flex:1 1 auto; }
+
+  /* boxes */
+  .box{ border:2px dotted var(--line); padding:12px; margin-bottom:14px; background:var(--paper); }
+  .stat{ border:2px solid var(--line); padding:10px; text-align:center; flex:1 1 90px; background:var(--paper); }
+  .stat .n{ font-size:30px; font-weight:bold; }
+  .stat .l{ font-size:14px; color:var(--muted); }
+  .statrow{ display:flex; gap:8px; margin-bottom:16px; }
+
+  .item{ border-bottom:1px dotted var(--line); padding:10px 0; }
+  .item:last-child{ border-bottom:none; }
+  .item-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; cursor:pointer; }
+  .item-title{ font-weight:bold; font-size:19px; }
+  .item-sub{ font-size:15px; color:var(--muted); margin-top:2px; }
+  .item-body{ margin-top:10px; padding-top:10px; border-top:1px dotted var(--line); }
+
+  .pill{ display:inline-block; border:1px dotted var(--line); padding:1px 8px; font-size:13px; margin-right:4px; background:var(--g2); }
+  .toast{ position:fixed; left:10px; right:10px; bottom:10px; background:var(--ink); color:var(--paper);
+    padding:12px 14px; font-size:17px; text-align:center; border:2px solid var(--ink); z-index:999; }
+  .hidden{ display:none !important; }
+  .section{ display:none; }
+  .section.active{ display:block; }
+  .barouter{ border:1px dotted var(--line); height:14px; width:100%; background:var(--paper); }
+  .barinner{ height:100%; background-color:var(--g5); background-image:radial-gradient(var(--ink) 1.1px, transparent 1.3px); background-size:5px 5px; }
+  .center{ text-align:center; }
+  .taskcell{ border:2px dotted var(--line); padding:10px; margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+  .taskcell.state-1{ background-color:var(--g2); background-image:radial-gradient(var(--g5) 1.2px, transparent 1.4px); background-size:6px 6px; }
+  .taskcell.state-2{ background:var(--ink); color:var(--paper); text-decoration:line-through; border-style:solid; }
+  .taskcell .ttxt{ flex:1; font-size:17px; cursor:pointer; }
+  .subtabs{ display:flex; gap:6px; margin-bottom:12px; }
+  .subtabs button{ flex:1; }
+  .subtabs button.active{ background:var(--ink); color:var(--paper); border-style:solid; }
+  fieldset{ border:2px dotted var(--line); margin:0 0 10px; }
+  legend{ font-weight:bold; padding:0 6px; }
+
+  /* bingo square grid */
+  .bingogrid{ display:flex; flex-wrap:wrap; border-top:2px dotted var(--line); border-left:2px dotted var(--line); margin-bottom:10px; }
+  .bingogrid.cols3 .bingocell-outer{ width:33.3333%; }
+  .bingogrid.cols4 .bingocell-outer{ width:25%; }
+  .bingocell-outer{ position:relative; border-right:2px dotted var(--line); border-bottom:2px dotted var(--line); }
+  .bingocell-outer::before{ content:""; display:block; padding-top:100%; }
+  .bingocell{ position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:4px; overflow:hidden; cursor:pointer; }
+  .bingocell .mark{ display:block; font-size:16px; line-height:1; margin-bottom:3px; }
+  .bingocell .txt{ font-size:11.5px; line-height:1.15; word-break:break-word; }
+  .bingocell.state-1{ background-color:var(--g2); background-image:radial-gradient(var(--g5) 1.2px, transparent 1.4px); background-size:6px 6px; }
+  .bingocell.state-2{ background:var(--ink); color:var(--paper); text-decoration:line-through; }
+
+  /* wheel */
+  .wheelwrap{ display:flex; flex-direction:column; align-items:center; margin:10px 0 16px; }
+  .wheelsvg{ width:220px; height:220px; max-width:70vw; max-height:70vw; }
+  #wheel-pointer{ margin-bottom:-6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="topbar">
+    <div class="row1">
+      <h1>Shelf &amp; Spine</h1>
+      <div id="userbtns"></div>
+    </div>
+    <div id="nav">
+      <button data-nav="home">Home</button>
+      <button data-nav="goals">Goals</button>
+      <button data-nav="wheel">Wheel</button>
+      <button data-nav="bingo">Bingo</button>
+    </div>
+    <div id="syncline"></div>
+  </div>
+
+  <!-- ================= HOME ================= -->
+  <section class="section" id="section-home">
+    <div id="home-content">Loading…</div>
+  </section>
+
+  <!-- ================= GOALS ================= -->
+  <section class="section" id="section-goals">
+    <h2>Reading Goals</h2>
+    <div id="goals-content">Loading…</div>
+  </section>
+
+  <!-- ================= WHEEL ================= -->
+  <section class="section" id="section-wheel">
+    <h2>Random Wheel</h2>
+    <div id="wheel-content">Loading…</div>
+  </section>
+
+  <!-- ================= BINGO ================= -->
+  <section class="section" id="section-bingo">
+    <h2>Reading Bingo</h2>
+    <div id="bingo-content">Loading…</div>
+  </section>
+
+</div>
+<div id="toast-root"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* =====================================================================
+   SETUP — same Firebase project & doc scheme as index.html / goals.html
+   / wheel.html / bingo.html, so this page reads & writes the exact same
+   data and stays in sync with the full desktop/mobile app.
+===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBqOuK-l7h5Do9sAk1y4MBxwYkFFu2pusY",
+  authDomain: "readingtracker-73e78.firebaseapp.com",
+  projectId: "readingtracker-73e78",
+  storageBucket: "readingtracker-73e78.firebasestorage.app",
+  messagingSenderId: "391536984056",
+  appId: "1:391536984056:web:ec841e6e42dbfd51e8e00d"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+
+const PROFILES = [
+  { id:"shared", name:"Yoni" },
+  { id:"tom", name:"Tom" }
+];
+function getCurrentUserId(){ return lsGet('shelf:currentUser') || 'shared'; }
+function switchUser(id){ lsSet('shelf:currentUser', id); location.reload(); }
+
+const SHARED_DOC = db.collection("shelf-spine").doc(getCurrentUserId());
+const WHEEL_DOC  = db.collection("wheel-app").doc(getCurrentUserId());
+const BINGO_DOC  = db.collection("bingo-app").doc(getCurrentUserId());
+
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function todayISO(){
+  const d=new Date(); const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+function fmtDateShort(iso){
+  if(!iso) return "";
+  const d = new Date(iso+"T00:00:00");
+  if(isNaN(d)) return iso;
+  const todayStr = todayISO();
+  if(iso===todayStr) return "Today";
+  return d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+}
+function toast(msg){
+  const root = document.getElementById('toast-root');
+  const box = document.createElement('div');
+  box.className = 'toast';
+  box.textContent = msg;
+  root.appendChild(box);
+  setTimeout(()=>box.remove(), 3200);
+}
+
+/* =====================================================================
+   NAVIGATION
+===================================================================== */
+let activeSection = lsGet('kindle:lastSection') || 'home';
+function renderNav(){
+  document.getElementById('userbtns').innerHTML = PROFILES.map(p=>
+    `<button data-user="${p.id}" class="small ${p.id===getCurrentUserId()?'active':''}">${esc(p.name)}</button>`
+  ).join('');
+  document.querySelectorAll('#nav button').forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('data-nav')===activeSection);
+  });
+}
+function goSection(name){
+  activeSection = name;
+  lsSet('kindle:lastSection', name);
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  renderNav();
+  window.scrollTo(0,0);
+  if(name==='home') renderHome();
+  if(name==='goals') renderGoals();
+  if(name==='wheel') renderWheel();
+  if(name==='bingo') renderBingoAll();
+}
+document.getElementById('nav').addEventListener('click', e=>{
+  const b = e.target.closest('button[data-nav]');
+  if(b) goSection(b.getAttribute('data-nav'));
+});
+document.getElementById('userbtns').addEventListener('click', e=>{
+  const b = e.target.closest('button[data-user]');
+  if(b) switchUser(b.getAttribute('data-user'));
+});
+
+/* =====================================================================
+   STATE
+===================================================================== */
+let state = {
+  books: [], wishlist: [], goalsYearly: {}, goalsMode: [],
+  loaded: false
+};
+let wheelState = { currentSpins: 0, subGoals: {}, goalsViewDate: null, loaded:false };
+
+/* =====================================================================
+   HOME (simplified dashboard + full Currently Reading editor)
+===================================================================== */
+let ui = {
+  crExpanded: new Set(),
+  crCompleting: new Set()
+};
+
+function renderHome(){
+  const el = document.getElementById('home-content');
+  const books = state.books;
+  if(!state.loaded){ el.innerHTML = "Loading…"; return; }
+  if(books.length===0){
+    el.innerHTML = `<p class="muted">No books yet. Add some in the main app first — this page shows what's already there.</p>`;
+    return;
+  }
+  const year = new Date().getFullYear().toString();
+  const completed = books.filter(b=>b.status==="done");
+  const completedThisYear = completed.filter(b => (b.dateFinished||"").slice(0,4)===year);
+  const rereadsThisYear = books.reduce((sum,b)=> sum + (b.rereads||[]).filter(r=>r.endDate && r.endDate.slice(0,4)===year).length, 0);
+  const totalCountedThisYear = completedThisYear.length + rereadsThisYear;
+  const reading = books.filter(b=>b.status==="reading");
+  const goalVal = Number(state.goalsYearly[year]) || 0;
+
+  let statsHTML = `
+    <div class="statrow">
+      <div class="stat"><div class="n">${books.length}</div><div class="l">Total books</div></div>
+      <div class="stat"><div class="n">${reading.length}</div><div class="l">Currently reading</div></div>
+      <div class="stat"><div class="n">${goalVal>0?`${totalCountedThisYear}/${goalVal}`:'—'}</div><div class="l">${year} goal</div></div>
+    </div>`;
+
+  let crHTML = `<h2>Currently Reading</h2>`;
+  if(reading.length===0){
+    crHTML += `<p class="muted">Nothing in progress right now.</p>`;
+  } else {
+    crHTML += reading.map(b=>renderCRItem(b)).join('');
+  }
+
+  el.innerHTML = statsHTML + crHTML;
+}
+
+function renderCRItem(b){
+  const pct = Math.max(0, Math.min(100, Number(b.progressPercent)||0));
+  const rating = Number(b.rating)||0;
+  const expanded = ui.crExpanded.has(b.id);
+  const completing = ui.crCompleting.has(b.id);
+  let head = `
+    <div class="item-head" data-action="cr-toggle" data-id="${b.id}">
+      <div>
+        <div class="item-title">${esc(b.title)}</div>
+        <div class="item-sub">${esc(b.author||"Unknown author")} · ${rating? rating+'★' : 'no rating'}${b.source==="Borrowed"&&b.dueDate?` · due ${esc(fmtDateShort(b.dueDate))}`:''}</div>
+        <div class="barouter"><div class="barinner" style="width:${pct}%"></div></div>
+        <div class="item-sub">${pct}% done</div>
+      </div>
+    </div>`;
+  let body = "";
+  if(expanded){
+    body = `<div class="item-body">
+      <label>Progress percent</label>
+      <div class="row">
+        <input type="number" min="0" max="100" step="1" id="cr-pct-${b.id}" value="${pct}" style="max-width:100px;">
+        <button class="small" data-action="cr-save-pct" data-id="${b.id}">Save %</button>
+      </div>
+      <label>Rating (0–5)</label>
+      <div class="row">
+        <input type="number" min="0" max="5" step="0.25" id="cr-rating-${b.id}" value="${rating||''}" placeholder="0-5" style="max-width:100px;">
+        <button class="small" data-action="cr-save-rating" data-id="${b.id}">Save rating</button>
+      </div>
+      ${b.source==="Borrowed" ? `
+      <label>Due date</label>
+      <div class="row">
+        <input type="date" id="cr-due-${b.id}" value="${b.dueDate||''}">
+        <button class="small" data-action="cr-save-due" data-id="${b.id}">Save date</button>
+      </div>` : ''}
+      <div class="btnrow">
+        <button data-action="cr-complete-open" data-id="${b.id}">Mark completed</button>
+        <button data-action="cr-dnf" data-id="${b.id}">Did not finish</button>
+      </div>
+      ${completing ? `
+      <div class="box" style="margin-top:10px;">
+        <label>Date finished</label>
+        <input type="date" id="cr-finished-${b.id}" value="${todayISO()}" class="full">
+        <label>Final rating (required)</label>
+        <input type="number" min="0.25" max="5" step="0.25" id="cr-finalrating-${b.id}" placeholder="0-5" class="full">
+        <div class="btnrow">
+          <button data-action="cr-complete-save" data-id="${b.id}">Complete book</button>
+          <button data-action="cr-complete-cancel" data-id="${b.id}">Cancel</button>
+        </div>
+      </div>` : ''}
+    </div>`;
+  }
+  return `<div class="item">${head}${body}</div>`;
+}
+
+document.getElementById('home-content').addEventListener('click', e=>{
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const action = t.getAttribute('data-action');
+  const id = t.getAttribute('data-id');
+  if(action==='cr-toggle'){
+    if(ui.crExpanded.has(id)) ui.crExpanded.delete(id); else ui.crExpanded.add(id);
+    renderHome();
+  } else if(action==='cr-save-pct'){
+    const val = Math.max(0, Math.min(100, Number(document.getElementById('cr-pct-'+id).value)||0));
+    updateBook(id, { progressPercent: val, progressMode: "percent" });
+  } else if(action==='cr-save-rating'){
+    const val = Math.max(0, Math.min(5, Number(document.getElementById('cr-rating-'+id).value)||0));
+    updateBook(id, { rating: val });
+  } else if(action==='cr-save-due'){
+    const val = document.getElementById('cr-due-'+id).value;
+    updateBook(id, { dueDate: val });
+  } else if(action==='cr-complete-open'){
+    ui.crCompleting.add(id); renderHome();
+  } else if(action==='cr-complete-cancel'){
+    ui.crCompleting.delete(id); renderHome();
+  } else if(action==='cr-complete-save'){
+    const dateFinished = document.getElementById('cr-finished-'+id).value;
+    const rating = Number(document.getElementById('cr-finalrating-'+id).value)||0;
+    if(rating<=0){ alert("Please enter a rating before completing."); return; }
+    ui.crCompleting.delete(id);
+    updateBook(id, { status:"done", dateFinished, rating, priority:"", dueDate:"" });
+  } else if(action==='cr-dnf'){
+    if(!confirm("Mark this book as Did Not Finish?")) return;
+    ui.crCompleting.delete(id);
+    updateBook(id, { status:"dnf", rating:0, priority:"", dueDate:"" });
+  }
+});
+
+function updateBook(id, patch){
+  state.books = state.books.map(b => b.id===id ? {...b, ...patch} : b);
+  SHARED_DOC.set({ books: state.books }, { merge:true }).catch(err=>{
+    console.error(err); toast("Save failed — check connection.");
+  });
+  renderHome();
+}
+
+/* =====================================================================
+   GOALS  (full port of goals.html's milestone logic)
+===================================================================== */
+let goalsUI = {
+  formOpen: false,
+  editingGoalId: null,
+  type: 'percentage',
+  chapterMode: 'numeric',
+  pageJump: 5
+};
+let goalsUndoStack = [];
+
+function currentlyReadingForGoals(){
+  return state.books.filter(b=>b.status==='reading').map(b=>({ title:b.title, source:b.source, dueDate:b.dueDate||"" }));
+}
+
+function renderGoals(){
+  const el = document.getElementById('goals-content');
+  if(!state.loaded){ el.innerHTML="Loading…"; return; }
+  let html = `<div class="btnrow">
+      <button data-action="goals-undo" ${goalsUndoStack.length===0?'disabled':''}>↩ Undo</button>
+      <button data-action="goals-add-open">${goalsUI.formOpen?'Close form':'+ Add goal'}</button>
+    </div>`;
+  if(goalsUI.formOpen) html += goalFormHTML();
+  html += goalsListHTML();
+  el.innerHTML = html;
+  if(goalsUI.formOpen) applyGoalTypeUI();
+}
+
+function goalFormHTML(){
+  const books = currentlyReadingForGoals();
+  const todayStr = todayISO();
+  return `<div class="box" id="goal-form-box">
+    <h3>${goalsUI.editingGoalId!==null?'Edit Goal':'Add Reading Goal'}</h3>
+    <label>Book</label>
+    <select id="gf-book" class="full">
+      ${books.length===0 ? `<option value="">— No currently-reading books —</option>` :
+        books.map(b=>`<option value="${esc(b.title)}" ${b.title===goalsUI._book?'selected':''}>${esc(b.title)}</option>`).join('')}
+    </select>
+    <label>Date range</label>
+    <div class="row">
+      <input type="date" id="gf-from" value="${goalsUI._from||todayStr}">
+      <span>to</span>
+      <input type="date" id="gf-to" value="${goalsUI._to||todayStr}">
+    </div>
+    <button class="small" data-action="goals-match-due" style="margin-top:6px;">📅 Match to book's due date</button>
+    <p class="muted">Milestones are split evenly across the days in this range.</p>
+
+    <label>Goal type</label>
+    <div class="btnrow">
+      <button class="small" data-action="goals-set-type" data-type="percentage" id="gtype-percentage">By percentage</button>
+      <button class="small" data-action="goals-set-type" data-type="chapter" id="gtype-chapter">By chapter</button>
+      <button class="small" data-action="goals-set-type" data-type="page" id="gtype-page">By page</button>
+    </div>
+
+    <div id="gf-percentage-fields">
+      <label>Percentage range</label>
+      <div class="row">
+        <input type="number" id="gf-pct-from" min="0" max="99" value="${goalsUI._pctFrom??0}" placeholder="From %">
+        <input type="number" id="gf-pct-to" min="1" max="100" value="${goalsUI._pctTo??100}" placeholder="To %">
+      </div>
+    </div>
+
+    <div id="gf-chapter-fields" class="hidden">
+      <div class="btnrow">
+        <button class="small" data-action="goals-set-chmode" data-mode="numeric" id="gchmode-numeric">Numeric range</button>
+        <button class="small" data-action="goals-set-chmode" data-mode="text" id="gchmode-text">Named chapters</button>
+      </div>
+      <div id="gf-ch-numeric">
+        <label>Chapter range</label>
+        <div class="row">
+          <input type="number" id="gf-ch-from" min="1" placeholder="From ch.">
+          <input type="number" id="gf-ch-to" min="1" placeholder="To ch.">
+        </div>
+      </div>
+      <div id="gf-ch-text" class="hidden">
+        <label>Chapter names (one per line)</label>
+        <textarea id="gf-ch-names" rows="4" placeholder="Prologue&#10;Chapter 1&#10;Epilogue"></textarea>
+      </div>
+    </div>
+
+    <div id="gf-page-fields" class="hidden">
+      <div class="btnrow">
+        <button class="small" data-action="goals-set-jump" data-jump="5" id="gjump-5">Every 5 pages</button>
+        <button class="small" data-action="goals-set-jump" data-jump="10" id="gjump-10">Every 10 pages</button>
+      </div>
+      <label>Page range</label>
+      <div class="row">
+        <input type="number" id="gf-pg-from" min="0" placeholder="From p." value="0">
+        <input type="number" id="gf-pg-to" min="1" placeholder="To p.">
+      </div>
+    </div>
+
+    <div class="btnrow">
+      <button data-action="goals-save">${goalsUI.editingGoalId!==null?'Save changes':'Add goal'}</button>
+      <button data-action="goals-cancel">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function applyGoalTypeUI(){
+  ['percentage','chapter','page'].forEach(t=>{
+    const btn = document.getElementById('gtype-'+t);
+    if(btn) btn.classList.toggle('active', goalsUI.type===t);
+  });
+  document.getElementById('gf-percentage-fields').classList.toggle('hidden', goalsUI.type!=='percentage');
+  document.getElementById('gf-chapter-fields').classList.toggle('hidden', goalsUI.type!=='chapter');
+  document.getElementById('gf-page-fields').classList.toggle('hidden', goalsUI.type!=='page');
+  const numBtn = document.getElementById('gchmode-numeric'), txtBtn = document.getElementById('gchmode-text');
+  if(numBtn){ numBtn.classList.toggle('active', goalsUI.chapterMode==='numeric'); txtBtn.classList.toggle('active', goalsUI.chapterMode==='text'); }
+  const chNum = document.getElementById('gf-ch-numeric'), chTxt = document.getElementById('gf-ch-text');
+  if(chNum){ chNum.classList.toggle('hidden', goalsUI.chapterMode!=='numeric'); chTxt.classList.toggle('hidden', goalsUI.chapterMode!=='text'); }
+  const j5 = document.getElementById('gjump-5'), j10 = document.getElementById('gjump-10');
+  if(j5){ j5.classList.toggle('active', goalsUI.pageJump===5); j10.classList.toggle('active', goalsUI.pageJump===10); }
+}
+
+function goalsListHTML(){
+  const goalsData = state.goalsMode;
+  if(!goalsData.length) return `<p class="muted">No reading goals yet. Tap "+ Add goal" to set your first milestone.</p>`;
+  const byDate = {};
+  goalsData.forEach(goal=>{
+    (goal.milestones||[]).forEach((ms,idx)=>{
+      const d = ms.date || goal.date;
+      if(!d) return;
+      if(!byDate[d]) byDate[d] = [];
+      let entry = byDate[d].find(e=>e.goal===goal);
+      if(!entry){ entry = { goal, items:[] }; byDate[d].push(entry); }
+      entry.items.push({ idx, ms });
+    });
+  });
+  const dates = Object.keys(byDate).sort();
+  return dates.map(date=>{
+    const entries = byDate[date];
+    let total=0, done=0;
+    entries.forEach(e=>{ total += e.items.length; done += e.items.filter(i=>i.ms.completed).length; });
+    const pct = total>0 ? Math.round(done/total*100) : 0;
+    const groupHTML = entries.map(({goal,items})=>{
+      const header = `<div class="row" style="margin-top:10px;">
+        <div style="flex:1;"><b>${esc(goal.bookTitle)}</b></div>
+        <button class="small" data-action="goals-edit" data-goalid="${goal.id}">Edit</button>
+        <button class="small" data-action="goals-remove-day" data-goalid="${goal.id}" data-date="${date}">Remove</button>
+      </div>`;
+      const rows = items.map(({idx,ms})=>`
+        <div class="row" style="padding:4px 0;">
+          <input type="checkbox" data-action="goals-toggle-ms" data-goalid="${goal.id}" data-idx="${idx}" ${ms.completed?'checked':''}>
+          <div style="flex:1;${ms.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(ms.label)}</div>
+          <button class="link small" data-action="goals-del-ms" data-goalid="${goal.id}" data-idx="${idx}">✕</button>
+        </div>`).join('');
+      return header + rows;
+    }).join('');
+    return `<div class="box">
+      <div class="row">
+        <h3 style="flex:1;margin:0;">${esc(fmtDateShort(date))}</h3>
+        <div class="muted">${done}/${total} (${pct}%)</div>
+      </div>
+      ${groupHTML}
+      <div class="btnrow">
+        <button class="small" data-action="goals-del-day" data-date="${date}" ${pct===100?'':'disabled'}>Delete entire day</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pushGoalsUndo(){
+  goalsUndoStack.push(JSON.stringify(state.goalsMode));
+  if(goalsUndoStack.length>20) goalsUndoStack.shift();
+}
+function saveGoalsMode(){
+  SHARED_DOC.set({ goalsMode: state.goalsMode }, { merge:true }).catch(err=>{ console.error(err); toast("Save failed."); });
+}
+
+function buildPctMilestones(from, to){
+  const milestones = [];
+  let start = from+1;
+  const lastFull = Math.floor(to/5)*5;
+  for(let end=Math.min(from+5,lastFull); end>=start && end<=lastFull && start<=to; end+=5){
+    milestones.push({ label:`Percentage ${start}-${end}%`, completed:false });
+    start = end+1;
+  }
+  if(start<=to) milestones.push({ label:`Percentage ${start}-${to}%`, completed:false });
+  return milestones;
+}
+function buildPageMilestones(from, to, jump){
+  const milestones = [];
+  let start = from+1;
+  const lastFull = Math.floor(to/jump)*jump;
+  for(let end=Math.min(from+jump,lastFull); end>=start && end<=lastFull && start<=to; end+=jump){
+    milestones.push({ label:`Page ${start}-${end}`, completed:false });
+    start = end+1;
+  }
+  if(start<=to) milestones.push({ label:`Page ${start}-${to}`, completed:false });
+  return milestones;
+}
+function buildDateRange(fromStr, toStr){
+  const [fy,fm,fd] = fromStr.split('-').map(Number);
+  const [ty,tm,td] = toStr.split('-').map(Number);
+  const start = new Date(fy,fm-1,fd), end = new Date(ty,tm-1,td);
+  const dates = []; const cursor = new Date(start);
+  while(cursor<=end){
+    const y=cursor.getFullYear(), m=String(cursor.getMonth()+1).padStart(2,'0'), d=String(cursor.getDate()).padStart(2,'0');
+    dates.push(`${y}-${m}-${d}`);
+    cursor.setDate(cursor.getDate()+1);
+  }
+  return dates;
+}
+function distributeMilestonesAcrossDates(milestones, dates){
+  const n = milestones.length, d = dates.length;
+  if(d<=1){ milestones.forEach(m=>m.date=dates[0]); return milestones; }
+  const base = Math.floor(n/d), remainder = n%d;
+  let msIdx=0;
+  for(let dayIdx=0; dayIdx<d; dayIdx++){
+    const count = base + (dayIdx<remainder?1:0);
+    for(let c=0;c<count;c++){ if(msIdx>=n) break; milestones[msIdx].date = dates[dayIdx]; msIdx++; }
+  }
+  return milestones;
+}
+
+document.getElementById('goals-content').addEventListener('click', e=>{
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const action = t.getAttribute('data-action');
+  if(action==='goals-add-open'){
+    goalsUI.formOpen = !goalsUI.formOpen;
+    if(goalsUI.formOpen){ goalsUI.editingGoalId=null; goalsUI.type='percentage'; goalsUI.chapterMode='numeric'; goalsUI.pageJump=5; goalsUI._book=null; goalsUI._from=todayISO(); goalsUI._to=todayISO(); goalsUI._pctFrom=0; goalsUI._pctTo=100; }
+    renderGoals();
+  } else if(action==='goals-cancel'){
+    goalsUI.formOpen=false; goalsUI.editingGoalId=null; renderGoals();
+  } else if(action==='goals-set-type'){
+    goalsUI.type = t.getAttribute('data-type'); applyGoalTypeUI();
+  } else if(action==='goals-set-chmode'){
+    goalsUI.chapterMode = t.getAttribute('data-mode'); applyGoalTypeUI();
+  } else if(action==='goals-set-jump'){
+    goalsUI.pageJump = Number(t.getAttribute('data-jump')); applyGoalTypeUI();
+  } else if(action==='goals-match-due'){
+    const sel = document.getElementById('gf-book').value;
+    const book = currentlyReadingForGoals().find(b=>b.title===sel);
+    if(book && book.dueDate){
+      document.getElementById('gf-to').value = book.dueDate;
+      const fromEl = document.getElementById('gf-from');
+      if(fromEl.value && book.dueDate < fromEl.value) fromEl.value = todayISO();
+    } else {
+      toast("Selected book isn't borrowed with a due date.");
+    }
+  } else if(action==='goals-save'){
+    doSaveGoal();
+  } else if(action==='goals-edit'){
+    const goalId = Number(t.getAttribute('data-goalid'));
+    openEditGoal(goalId);
+  } else if(action==='goals-del-ms'){
+    const goalId = Number(t.getAttribute('data-goalid')), idx = Number(t.getAttribute('data-idx'));
+    const gi = state.goalsMode.findIndex(g=>g.id===goalId);
+    if(gi===-1) return;
+    pushGoalsUndo();
+    state.goalsMode[gi].milestones.splice(idx,1);
+    if(state.goalsMode[gi].milestones.length===0) state.goalsMode.splice(gi,1);
+    saveGoalsMode(); renderGoals();
+  } else if(action==='goals-remove-day'){
+    const goalId = Number(t.getAttribute('data-goalid')), date = t.getAttribute('data-date');
+    const gi = state.goalsMode.findIndex(g=>g.id===goalId);
+    if(gi===-1) return;
+    pushGoalsUndo();
+    const goal = state.goalsMode[gi];
+    goal.milestones = goal.milestones.filter(ms=>(ms.date||goal.date)!==date);
+    if(goal.milestones.length===0) state.goalsMode.splice(gi,1);
+    saveGoalsMode(); renderGoals();
+  } else if(action==='goals-del-day'){
+    const date = t.getAttribute('data-date');
+    pushGoalsUndo();
+    state.goalsMode.forEach(g=>{ g.milestones = g.milestones.filter(ms=>(ms.date||g.date)!==date); });
+    state.goalsMode = state.goalsMode.filter(g=>g.milestones.length>0);
+    saveGoalsMode(); renderGoals();
+  } else if(action==='goals-undo'){
+    if(goalsUndoStack.length===0) return;
+    state.goalsMode = JSON.parse(goalsUndoStack.pop());
+    saveGoalsMode(); renderGoals();
+  }
+});
+document.getElementById('goals-content').addEventListener('change', e=>{
+  const t = e.target.closest('[data-action="goals-toggle-ms"]');
+  if(!t) return;
+  const goalId = Number(t.getAttribute('data-goalid')), idx = Number(t.getAttribute('data-idx'));
+  const goal = state.goalsMode.find(g=>g.id===goalId);
+  if(!goal) return;
+  goal.milestones[idx].completed = t.checked;
+  saveGoalsMode();
+  if(t.checked) toast("🎉 Milestone hit — " + goal.bookTitle);
+  renderGoals();
+});
+
+function openEditGoal(goalId){
+  const goal = state.goalsMode.find(g=>g.id===goalId);
+  if(!goal) return;
+  goalsUI.formOpen = true;
+  goalsUI.editingGoalId = goalId;
+  goalsUI.type = goal.type;
+  goalsUI._book = goal.bookTitle;
+  const dates = goal.milestones.map(m=>m.date).filter(Boolean).sort();
+  goalsUI._from = dates[0] || todayISO();
+  goalsUI._to = dates[dates.length-1] || todayISO();
+  if(goal.type==='percentage'){
+    const m = (goal.milestones[0]||{}).label && goal.milestones[0].label.match(/Percentage (\d+)-/);
+    const last = goal.milestones[goal.milestones.length-1];
+    const mLast = last && last.label.match(/-(\d+)%$/);
+    goalsUI._pctFrom = m ? Number(m[1])-1 : 0;
+    goalsUI._pctTo = mLast ? Number(mLast[1]) : 100;
+  }
+  renderGoals();
+  setTimeout(()=>{
+    if(goal.type==='page'){
+      const mm = goal.milestones[0].label.match(/Page (\d+)-/);
+      const mLast = goal.milestones[goal.milestones.length-1].label.match(/-(\d+)$/);
+      if(mm) document.getElementById('gf-pg-from').value = Number(mm[1])-1;
+      if(mLast) document.getElementById('gf-pg-to').value = Number(mLast[1]);
+    } else if(goal.type==='chapter'){
+      const chapterNumRegex = /^Chapter (\d+)$/;
+      const allNumeric = goal.milestones.every(m=>chapterNumRegex.test(m.label));
+      if(allNumeric){
+        const nums = goal.milestones.map(m=>parseInt(m.label.match(chapterNumRegex)[1]));
+        goalsUI.chapterMode = 'numeric'; applyGoalTypeUI();
+        document.getElementById('gf-ch-from').value = Math.min(...nums);
+        document.getElementById('gf-ch-to').value = Math.max(...nums);
+      } else {
+        goalsUI.chapterMode = 'text'; applyGoalTypeUI();
+        document.getElementById('gf-ch-names').value = goal.milestones.map(m=>m.label).join('\n');
+      }
+    }
+  }, 0);
+}
+
+function doSaveGoal(){
+  const bookTitle = document.getElementById('gf-book').value;
+  const fromDate = document.getElementById('gf-from').value;
+  const toDate = document.getElementById('gf-to').value;
+  if(!bookTitle) return alert('Please select a book.');
+  if(!fromDate || !toDate) return alert('Please pick a date range.');
+  if(toDate < fromDate) return alert('"To" date must be on or after "From" date.');
+
+  let milestones = [];
+  if(goalsUI.type==='percentage'){
+    const from = parseInt(document.getElementById('gf-pct-from').value);
+    const to = parseInt(document.getElementById('gf-pct-to').value);
+    if(isNaN(from)||isNaN(to)) return alert('Enter valid percentages.');
+    if(to<=from) return alert('"To" must be greater than "From".');
+    if(from<0||to>100) return alert('Percentages must be 0-100.');
+    milestones = buildPctMilestones(from,to);
+    if(!milestones.length) return alert('Range too small.');
+  } else if(goalsUI.type==='page'){
+    const from = parseInt(document.getElementById('gf-pg-from').value);
+    const to = parseInt(document.getElementById('gf-pg-to').value);
+    if(isNaN(from)||isNaN(to)) return alert('Enter a valid page range.');
+    if(to<=from) return alert('"To" page must be greater.');
+    if(from<0) return alert('"From" page must be 0+.');
+    milestones = buildPageMilestones(from,to,goalsUI.pageJump);
+    if(!milestones.length) return alert('Range too small.');
+  } else {
+    if(goalsUI.chapterMode==='numeric'){
+      const from = parseInt(document.getElementById('gf-ch-from').value);
+      const to = parseInt(document.getElementById('gf-ch-to').value);
+      if(isNaN(from)||isNaN(to)||from<1||to<from) return alert('Enter a valid chapter range.');
+      for(let ch=from; ch<=to; ch++) milestones.push({ label:'Chapter '+ch, completed:false });
+    } else {
+      const lines = document.getElementById('gf-ch-names').value.split('\n').map(l=>l.trim()).filter(Boolean);
+      if(!lines.length) return alert('Enter at least one chapter name.');
+      lines.forEach(name=>milestones.push({ label:name, completed:false }));
+    }
+  }
+
+  const dateRange = buildDateRange(fromDate, toDate);
+  distributeMilestonesAcrossDates(milestones, dateRange);
+  pushGoalsUndo();
+
+  if(goalsUI.editingGoalId!==null){
+    const gi = state.goalsMode.findIndex(g=>g.id===goalsUI.editingGoalId);
+    if(gi===-1) return;
+    const remaining = {};
+    state.goalsMode[gi].milestones.forEach(m=>{ if(m.completed) remaining[m.label]=(remaining[m.label]||0)+1; });
+    milestones.forEach(m=>{ if(remaining[m.label]>0){ m.completed=true; remaining[m.label]--; } });
+    state.goalsMode[gi].bookTitle = bookTitle;
+    state.goalsMode[gi].type = goalsUI.type;
+    state.goalsMode[gi].milestones = milestones;
+  } else {
+    state.goalsMode.push({ id: Date.now(), bookTitle, type: goalsUI.type, milestones });
+  }
+  saveGoalsMode();
+  goalsUI.formOpen = false; goalsUI.editingGoalId = null;
+  renderGoals();
+}
+
+/* =====================================================================
+   WHEEL  (full port of wheel.html's core mechanics, simplified UI)
+===================================================================== */
+let wheelUI = {
+  mode: (['reading','tbr','goals'].includes(lsGet('shelf:wheelMode')) ? lsGet('shelf:wheelMode') : 'reading'),
+  filtersOpen: false,
+  deselectedGenres: new Set(),
+  deselectedFormats: new Set(),
+  energy: 'Normal',
+  lastWinner: null,
+  subGoalEditFor: null, // book object
+  rotation: 0,
+  spinning: false
+};
+
+/* ---- simple B/W spinning wheel (SVG) ---- */
+function wheelPolar(cx,cy,r,angleDeg){
+  const rad = (angleDeg-0) * Math.PI/180;
+  return { x: cx + r*Math.sin(rad), y: cy - r*Math.cos(rad) };
+}
+function wheelSliceInner(cx,cy,r,a0,a1){
+  const p0 = wheelPolar(cx,cy,r,a0), p1 = wheelPolar(cx,cy,r,a1);
+  const large = (a1-a0) > 180 ? 1 : 0;
+  return `M ${cx} ${cy} L ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} Z`;
+}
+const WHEEL_MAX_SLOTS = 40;
+const WHEEL_PALETTE = [
+  { fill:'#000000', text:'#ffffff' },
+  { fill:'#ffffff', text:'#000000' },
+  { fill:'#8a8a8a', text:'#ffffff' },
+  { fill:'#d6d6d6', text:'#000000' }
+];
+function wheelTruncate(s, maxLen){
+  s = String(s==null?'':s);
+  return s.length>maxLen ? s.slice(0,maxLen-1)+'…' : s;
+}
+function wheelWrapLines(title, maxCharsPerLine, maxLines){
+  const words = String(title||'Untitled').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  for(let w of words){
+    if(lines.length>=maxLines) break;
+    let candidate = cur ? cur+' '+w : w;
+    if(candidate.length<=maxCharsPerLine){
+      cur = candidate;
+      continue;
+    }
+    if(cur){ lines.push(cur); cur=''; }
+    if(lines.length>=maxLines) break;
+    while(w.length>maxCharsPerLine && lines.length<maxLines-1){
+      lines.push(w.slice(0,maxCharsPerLine-1)+'-');
+      w = w.slice(maxCharsPerLine-1);
+    }
+    cur = w.length>maxCharsPerLine ? w.slice(0,maxCharsPerLine) : w;
+  }
+  if(cur && lines.length<maxLines) lines.push(cur);
+  const wordsUsed = lines.join(' ').split(/[\s-]+/).filter(Boolean).length;
+  if(lines.length>=maxLines && wordsUsed<words.length){
+    let last = lines[lines.length-1];
+    if(last.length>maxCharsPerLine-1) last = last.slice(0,maxCharsPerLine-1);
+    lines[lines.length-1] = last.replace(/[.,;:\-]+$/,'') + '…';
+  }
+  return lines.length ? lines : ['Untitled'];
+}
+function wheelSVG(books, rotation){
+  const cx=100, cy=100, r=84;
+  const count = Math.max(2, Math.min(books.length, WHEEL_MAX_SLOTS));
+  const segAngle = 360/count;
+  const showLabels = books.length<=WHEEL_MAX_SLOTS;
+  const textRadius = r*0.56;
+  const fontSize = count<=4?11.5:count<=8?10:count<=16?8.5:count<=28?7:6;
+  const maxLines = count<=8?3:2;
+  let slices = '';
+  for(let i=0;i<count;i++){
+    const a0=i*segAngle, a1=(i+1)*segAngle, center=a0+segAngle/2;
+    const p = WHEEL_PALETTE[i%WHEEL_PALETTE.length];
+    slices += `<path d="${wheelSliceInner(cx,cy,r,a0,a1)}" fill="${p.fill}" stroke="#000" stroke-width="1.2"/>`;
+    if(showLabels){
+      // straight label running along the wedge's spoke (sideways, like a real prize wheel),
+      // wrapped across a few short lines so it has room instead of shrinking to one tiny line
+      const widthBudget = 2*textRadius*Math.sin((segAngle*0.5)*Math.PI/180) * 0.82;
+      const maxCharsPerLine = Math.max(3, Math.floor(widthBudget/(fontSize*0.56)));
+      const rawTitle = (books[i] && books[i].title) ? books[i].title : 'Untitled';
+      const lines = wheelWrapLines(rawTitle, maxCharsPerLine, maxLines);
+      const pos = wheelPolar(cx,cy,textRadius,center);
+      const flip = center>90 && center<270;
+      const rot = flip ? center+180 : center;
+      const lineHeightEm = 1.08;
+      const startDy = -((lines.length-1)*lineHeightEm)/2;
+      const tspans = lines.map((ln,idx)=>`<tspan x="${pos.x.toFixed(2)}" dy="${(idx===0?startDy:lineHeightEm).toFixed(2)}em">${esc(ln)}</tspan>`).join('');
+      slices += `<text x="${pos.x.toFixed(2)}" y="${pos.y.toFixed(2)}" text-anchor="middle" font-size="${fontSize}" font-family="Georgia, serif" fill="${p.text}" transform="rotate(${rot.toFixed(2)} ${pos.x.toFixed(2)} ${pos.y.toFixed(2)})">${tspans}</text>`;
+    }
+  }
+  return `<svg class="wheelsvg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <g id="wheel-rotor" style="transform-origin:100px 100px; transform:rotate(${rotation}deg);">
+      <circle cx="${cx}" cy="${cy}" r="${r+2}" fill="#fff" stroke="#000" stroke-width="3"/>
+      ${slices}
+      <circle cx="${cx}" cy="${cy}" r="9" fill="#fff" stroke="#000" stroke-width="2.5"/>
+    </g>
+    <polygon points="${(cx+r-2).toFixed(1)},${cy} ${(cx+r+14).toFixed(1)},${(cy-9).toFixed(1)} ${(cx+r+14).toFixed(1)},${(cy+9).toFixed(1)}" fill="#000"></polygon>
+  </svg>`;
+}
+function wheelTargetRotation(count, winnerIdx, baseline){
+  const segAngle = 360/count;
+  const center = winnerIdx*segAngle + segAngle/2;
+  const jitter = (Math.random()*segAngle*0.5) - (segAngle*0.25);
+  const targetMod = ((360 - (center+jitter)) % 360 + 360) % 360;
+  const curMod = ((baseline % 360) + 360) % 360;
+  const diff = ((targetMod - curMod) % 360 + 360) % 360;
+  return baseline + diff + 360*4;
+}
+function doSpinAnimated(useSpin){
+  if(wheelUI.spinning) return;
+  const allBooks = computeAllBooksForMode(wheelUI.mode);
+  const filtered = applyWheelFilters(allBooks);
+  if(!filtered.length) return;
+  if(useSpin && wheelState.currentSpins<=0) return;
+  const rotor = document.getElementById('wheel-rotor');
+  if(!rotor){ doSpin(useSpin); return; }
+  const winnerIdx = Math.floor(Math.random()*filtered.length);
+  const winner = filtered[winnerIdx];
+  const count = Math.max(2, Math.min(filtered.length, WHEEL_MAX_SLOTS));
+  const idxForAngle = filtered.length<=WHEEL_MAX_SLOTS ? winnerIdx : Math.floor(winnerIdx*(count/filtered.length));
+  const newRotation = wheelTargetRotation(count, idxForAngle, wheelUI.rotation||0);
+  wheelUI.spinning = true;
+  document.querySelectorAll('#wheel-content [data-action="wheel-spin"], #wheel-content [data-action="wheel-spin-use"]')
+    .forEach(b=>{ b.disabled = true; });
+  rotor.style.transition = 'transform 2.2s cubic-bezier(0.15,0.85,0.25,1)';
+  // force reflow so the transition applies before we set the new transform
+  void rotor.offsetWidth;
+  rotor.style.transform = `rotate(${newRotation}deg)`;
+  setTimeout(()=>{
+    wheelUI.rotation = newRotation;
+    wheelUI.spinning = false;
+    wheelUI.lastWinner = winner;
+    wheelUI.subGoalEditFor = null;
+    if(useSpin){
+      wheelState.currentSpins = Math.max(0, wheelState.currentSpins-1);
+      saveWheelDoc({ currentSpins: wheelState.currentSpins });
+    }
+    renderWheel();
+    toast("Your pick: " + (winner.title||"Untitled"));
+  }, 2250);
+}
+
+function readingBooksForWheel(){ return state.books.filter(b=>b.status==='reading'); }
+function tbrBooksForWheel(){ return state.wishlist; }
+function effectiveGoalsDate(){
+  const t = todayISO();
+  if(wheelState.goalsViewDate && wheelState.goalsViewDate > t) return wheelState.goalsViewDate;
+  return t;
+}
+function findNextGoalsDate(afterDate){
+  const cand = new Set();
+  state.goalsMode.forEach(g=>(g.milestones||[]).forEach(ms=>{ if(!ms.completed && ms.date && ms.date>afterDate) cand.add(ms.date); }));
+  if(!cand.size) return null;
+  return Array.from(cand).sort()[0];
+}
+function computeGoalsBooks(){
+  const viewDate = effectiveGoalsDate();
+  const result = [];
+  readingBooksForWheel().forEach(book=>{
+    const matching = state.goalsMode.filter(g=>g.bookTitle===book.title);
+    let todayMs = null;
+    for(const g of matching){
+      const found = (g.milestones||[]).find(ms=>ms.date===viewDate && !ms.completed);
+      if(found){ todayMs = found; break; }
+    }
+    if(todayMs) result.push({ ...book, goalLabel: todayMs.label });
+  });
+  return result;
+}
+function computeAllBooksForMode(mode){
+  if(mode==='tbr') return tbrBooksForWheel();
+  if(mode==='goals') return computeGoalsBooks();
+  return readingBooksForWheel();
+}
+function subGoalKey(book){ return `${book.title||''}|||${book.goalLabel||''}`; }
+function getSubGoalEntry(book){ return wheelState.subGoals[subGoalKey(book)]; }
+function getEffectiveGoalDisplay(book){
+  const entry = getSubGoalEntry(book);
+  const items = entry && Array.isArray(entry.items) ? entry.items : [];
+  if(items.length===0) return { text: book.goalLabel, isSubGoal:false };
+  const nextIndex = items.findIndex(i=>!i.completed);
+  if(nextIndex===-1) return { text: book.goalLabel, isSubGoal:false, allDone:true };
+  const next = items[nextIndex];
+  return { text: next.text, isSubGoal:true, subGoalId: next.id, key: subGoalKey(book), position:`${nextIndex+1}/${items.length}` };
+}
+function parseGoalLabelForSplit(label){
+  if(!label) return { type:'chapter' };
+  let m = label.match(/^Page (\d+)-(\d+)$/);
+  if(m) return { type:'page', from:parseInt(m[1]), to:parseInt(m[2]) };
+  m = label.match(/^Percentage (\d+)-(\d+)%$/);
+  if(m) return { type:'percent', from:parseInt(m[1]), to:parseInt(m[2]) };
+  return { type:'chapter' };
+}
+function splitRangeIntoLabels(from,to,parts,fmt){
+  const total = to-from+1;
+  parts = Math.max(1, Math.min(parts, total));
+  const base = Math.floor(total/parts), remainder = total%parts;
+  const labels = []; let cursor = from;
+  for(let i=0;i<parts;i++){
+    const size = base + (i<remainder?1:0);
+    const start = cursor, end = cursor+size-1;
+    labels.push(fmt(start,end));
+    cursor = end+1;
+  }
+  return labels;
+}
+
+function getFieldValuesWheel(field){
+  const list = computeAllBooksForMode(wheelUI.mode);
+  const values = Array.from(new Set(list.map(b=>b[field]).filter(Boolean))).sort();
+  if(list.some(b=>!b[field])) values.push('__none__');
+  return values;
+}
+function applyWheelFilters(list){
+  const includeFormat = wheelUI.mode !== 'tbr';
+  return list.filter(b=>{
+    const g = b.genre || '__none__';
+    if(wheelUI.deselectedGenres.has(g)) return false;
+    if(includeFormat){
+      const f = b.format || '__none__';
+      if(wheelUI.deselectedFormats.has(f)) return false;
+    }
+    return true;
+  });
+}
+
+function saveWheelDoc(patch){
+  WHEEL_DOC.set(patch, { merge:true }).catch(err=>{ console.error(err); toast("Wheel save failed — will retry later."); });
+}
+
+function renderWheel(){
+  const el = document.getElementById('wheel-content');
+  if(!state.loaded){ el.innerHTML="Loading…"; return; }
+  const allBooks = computeAllBooksForMode(wheelUI.mode);
+  const filtered = applyWheelFilters(allBooks);
+
+  let html = `<div class="btnrow">
+    <button data-action="wheel-mode" data-mode="reading" ${wheelUI.mode==='reading'?'class="active"':''}>Reading</button>
+    <button data-action="wheel-mode" data-mode="tbr" ${wheelUI.mode==='tbr'?'class="active"':''}>TBR</button>
+    <button data-action="wheel-mode" data-mode="goals" ${wheelUI.mode==='goals'?'class="active"':''}>Goals</button>
+  </div>`;
+
+  if(wheelUI.mode==='goals'){
+    const viewDate = effectiveGoalsDate();
+    const nextDate = findNextGoalsDate(viewDate);
+    const allDoneToday = allBooks.length===0;
+    html += `<p class="muted">Showing goals for ${esc(fmtDateShort(viewDate))}.</p>`;
+    if(allDoneToday && nextDate){
+      html += `<button class="big" data-action="wheel-nextday">Move to next day (${esc(fmtDateShort(nextDate))})</button>`;
+    }
+  }
+
+  html += `<button class="small" data-action="wheel-filters-toggle">${wheelUI.filtersOpen?'Hide filters':'Filters'}</button>`;
+  if(wheelUI.filtersOpen) html += wheelFiltersHTML();
+
+  html += `<p class="muted">${filtered.length} book${filtered.length===1?'':'s'} in the running.</p>`;
+
+  // energy / spins
+  const spins = wheelState.currentSpins;
+  html += `<div class="box">
+    <label>Energy level</label>
+    <div class="btnrow">
+      ${['Tired','Normal','Energized','Ultra'].map(lvl=>`<button class="small ${wheelUI.energy===lvl?'active':''}" data-action="wheel-energy" data-lvl="${lvl}">${lvl}</button>`).join('')}
+    </div>
+    <button class="big" data-action="wheel-roll-spins">Roll spins for today</button>
+    <p class="center">${spins>0?`Spins left: <b>${spins}</b>`:'No spins rolled yet'}</p>
+  </div>`;
+
+  if(filtered.length){
+    html += `<div class="wheelwrap">${wheelSVG(filtered, wheelUI.rotation||0)}</div>`;
+  }
+
+  const spinDisabled = wheelUI.spinning || filtered.length===0;
+  html += `<div class="btnrow">
+    <button class="big" data-action="wheel-spin" ${spinDisabled?'disabled':''}>${wheelUI.spinning?'Spinning…':'Pick a book'}</button>
+    <button class="big" data-action="wheel-spin-use" ${(spinDisabled||spins<=0)?'disabled':''}>${wheelUI.spinning?'Spinning…':'Pick &amp; use a spin'}</button>
+  </div>`;
+  if(spins>1){
+    html += `<button data-action="wheel-onedown" ${wheelUI.spinning?'disabled':''}>Use a spin without picking</button>`;
+  }
+
+  if(wheelUI.lastWinner) html += winnerHTML(wheelUI.lastWinner);
+  if(wheelUI.subGoalEditFor) html += subGoalEditorHTML(wheelUI.subGoalEditFor);
+
+  if(filtered.length){
+    html += `<hr><h3>Books in the running</h3><div class="box">` + filtered.map((b,i)=>`
+      <div class="item">
+        <div class="item-title">${i+1}. ${esc(b.title||'Untitled')}</div>
+        <div class="item-sub">${esc(b.author||'Unknown author')}${b.goalLabel?` — ${esc(b.goalLabel)}`:''}</div>
+      </div>`).join('') + `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function wheelFiltersHTML(){
+  const genreValues = getFieldValuesWheel('genre');
+  const formatValues = wheelUI.mode!=='tbr' ? getFieldValuesWheel('format') : [];
+  function section(field,label,values,deselected){
+    if(!values.length) return '';
+    return `<b>${label}</b>` + values.map(v=>{
+      const lbl = v==='__none__' ? '(None)' : esc(v);
+      const checked = !deselected.has(v);
+      return `<label style="font-weight:normal;"><input type="checkbox" data-action="wheel-filter-cb" data-field="${field}" data-value="${esc(v)}" ${checked?'checked':''}> ${lbl}</label>`;
+    }).join('');
+  }
+  return `<div class="box">${section('genre','Genre',genreValues,wheelUI.deselectedGenres)}${section('format','Format',formatValues,wheelUI.deselectedFormats)}</div>`;
+}
+
+function winnerHTML(book){
+  let goalLine = '';
+  let showDoneBtn = false;
+  if(wheelUI.mode==='goals' && book.goalLabel){
+    const disp = getEffectiveGoalDisplay(book);
+    goalLine = `<p><b>Goal:</b> ${esc(disp.text)}${disp.position?` (${disp.position})`:''}</p>`;
+    showDoneBtn = !!disp.isSubGoal;
+  }
+  return `<div class="box" style="border-width:3px;">
+    <h3>Your pick</h3>
+    <p style="font-size:22px;font-weight:bold;">${esc(book.title||'Untitled')}</p>
+    <p class="muted">${esc(book.author||'Unknown author')}</p>
+    ${goalLine}
+    <div class="btnrow">
+      ${wheelUI.mode==='goals' ? `<button class="small" data-action="wheel-managesub">Manage sub-goals</button>` : ''}
+      ${showDoneBtn ? `<button class="small" data-action="wheel-subdone">✓ Mark sub-goal done</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function subGoalEditorHTML(book){
+  const detected = parseGoalLabelForSplit(book.goalLabel);
+  const entry = getSubGoalEntry(book);
+  const items = entry && entry.items ? entry.items : [];
+  let fieldsHTML = '';
+  if(detected.type==='page' || detected.type==='percent'){
+    const span = detected.to-detected.from+1;
+    fieldsHTML = `<p class="muted">Detected ${detected.from}-${detected.to}${detected.type==='percent'?'%':''} (${span}). How many pieces?</p>
+      <input type="number" id="sg-parts" min="1" max="${span}" placeholder="parts" class="full">`;
+  } else {
+    fieldsHTML = `<p class="muted">Chapter goal — enter its start/end page and how many pieces.</p>
+      <div class="row"><input type="number" id="sg-ch-start" placeholder="Start page"><input type="number" id="sg-ch-end" placeholder="End page"></div>
+      <input type="number" id="sg-ch-parts" min="1" placeholder="parts" class="full">`;
+  }
+  const listHTML = items.length ? items.map(it=>`
+    <div class="row" style="padding:3px 0;">
+      <input type="checkbox" data-action="sg-toggle" data-id="${it.id}" ${it.completed?'checked':''}>
+      <div style="flex:1;${it.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</div>
+      <button class="link small" data-action="sg-del" data-id="${it.id}">✕</button>
+    </div>`).join('') : `<p class="muted">No sub-goals yet.</p>`;
+  return `<div class="box">
+    <h3>Sub-goals: ${esc(book.title)} — ${esc(book.goalLabel)}</h3>
+    ${listHTML}
+    ${fieldsHTML}
+    <div class="btnrow">
+      <button data-action="sg-add">Add</button>
+      <button data-action="sg-close">Close</button>
+    </div>
+    <button class="small" data-action="sg-markdone" style="margin-top:6px;">Mark entire goal complete</button>
+  </div>`;
+}
+
+document.getElementById('wheel-content').addEventListener('click', e=>{
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const action = t.getAttribute('data-action');
+  if(action==='wheel-mode'){
+    wheelUI.mode = t.getAttribute('data-mode');
+    lsSet('shelf:wheelMode', wheelUI.mode);
+    wheelUI.deselectedGenres.clear(); wheelUI.deselectedFormats.clear();
+    wheelUI.lastWinner = null; wheelUI.subGoalEditFor = null;
+    renderWheel();
+  } else if(action==='wheel-nextday'){
+    const next = findNextGoalsDate(effectiveGoalsDate());
+    if(!next) return;
+    wheelState.goalsViewDate = next;
+    saveWheelDoc({ goalsViewDate: next });
+    renderWheel();
+  } else if(action==='wheel-filters-toggle'){
+    wheelUI.filtersOpen = !wheelUI.filtersOpen; renderWheel();
+  } else if(action==='wheel-energy'){
+    wheelUI.energy = t.getAttribute('data-lvl'); renderWheel();
+  } else if(action==='wheel-roll-spins'){
+    rollSpins();
+  } else if(action==='wheel-spin'){
+    doSpinAnimated(false);
+  } else if(action==='wheel-spin-use'){
+    doSpinAnimated(true);
+  } else if(action==='wheel-onedown'){
+    if(wheelState.currentSpins>0){
+      wheelState.currentSpins--; saveWheelDoc({ currentSpins: wheelState.currentSpins }); renderWheel();
+    }
+  } else if(action==='wheel-managesub'){
+    wheelUI.subGoalEditFor = wheelUI.lastWinner; renderWheel();
+  } else if(action==='wheel-subdone'){
+    markWinnerSubGoalDone();
+  } else if(action==='sg-close'){
+    wheelUI.subGoalEditFor = null; renderWheel();
+  } else if(action==='sg-add'){
+    addSubGoals();
+  } else if(action==='sg-del'){
+    const id = t.getAttribute('data-id');
+    const key = subGoalKey(wheelUI.subGoalEditFor);
+    const entry = wheelState.subGoals[key];
+    if(entry){ entry.items = entry.items.filter(i=>i.id!==id); saveWheelDoc({ subGoals: wheelState.subGoals }); renderWheel(); }
+  } else if(action==='sg-markdone'){
+    markEntireGoalComplete();
+  }
+});
+document.getElementById('wheel-content').addEventListener('change', e=>{
+  const cb = e.target.closest('[data-action="wheel-filter-cb"]');
+  if(cb){
+    const field = cb.getAttribute('data-field'), value = cb.getAttribute('data-value');
+    const set = field==='genre' ? wheelUI.deselectedGenres : wheelUI.deselectedFormats;
+    if(cb.checked) set.delete(value); else set.add(value);
+    renderWheel();
+    return;
+  }
+  const sg = e.target.closest('[data-action="sg-toggle"]');
+  if(sg){
+    const id = sg.getAttribute('data-id');
+    const key = subGoalKey(wheelUI.subGoalEditFor);
+    const entry = wheelState.subGoals[key];
+    const item = entry && entry.items.find(i=>i.id===id);
+    if(item){ item.completed = sg.checked; saveWheelDoc({ subGoals: wheelState.subGoals }); renderWheel(); }
+  }
+});
+
+function rollSpins(){
+  const energy = wheelUI.energy;
+  let rand = Math.random()*100;
+  let result = 1;
+  if(energy==='Ultra'){ result = Math.floor(Math.random()*20)+1; }
+  else if(energy==='Tired'){ result = rand<25?1:rand<50?2:rand<65?3:rand<80?4:5; }
+  else if(energy==='Normal'){ result = rand<10?1:rand<20?2:rand<45?3:rand<70?4:5; }
+  else { result = rand<5?1:rand<10?2:rand<50?3:rand<75?4:5; }
+  wheelState.currentSpins = result;
+  saveWheelDoc({ currentSpins: result });
+  renderWheel();
+}
+function doSpin(useSpin){
+  const allBooks = computeAllBooksForMode(wheelUI.mode);
+  const filtered = applyWheelFilters(allBooks);
+  if(!filtered.length) return;
+  if(useSpin && wheelState.currentSpins<=0) return;
+  const winner = filtered[Math.floor(Math.random()*filtered.length)];
+  wheelUI.lastWinner = winner;
+  wheelUI.subGoalEditFor = null;
+  if(useSpin){
+    wheelState.currentSpins = Math.max(0, wheelState.currentSpins-1);
+    saveWheelDoc({ currentSpins: wheelState.currentSpins });
+  }
+  renderWheel();
+  toast("Your pick: " + (winner.title||"Untitled"));
+}
+function markWinnerSubGoalDone(){
+  const book = wheelUI.lastWinner;
+  if(!book) return;
+  const disp = getEffectiveGoalDisplay(book);
+  if(!disp.isSubGoal) return;
+  const entry = wheelState.subGoals[disp.key];
+  const item = entry && entry.items.find(i=>i.id===disp.subGoalId);
+  if(item){ item.completed = true; saveWheelDoc({ subGoals: wheelState.subGoals }); toast("Sub-goal marked done."); renderWheel(); }
+}
+function ensureSubGoalEntry(book){
+  const key = subGoalKey(book);
+  if(!wheelState.subGoals[key]) wheelState.subGoals[key] = { parentLabel: book.goalLabel, bookTitle: book.title, items: [] };
+  return wheelState.subGoals[key];
+}
+function addSubGoals(){
+  const book = wheelUI.subGoalEditFor;
+  if(!book) return;
+  const detected = parseGoalLabelForSplit(book.goalLabel);
+  let texts = [];
+  if(detected.type==='page'){
+    const parts = parseInt(document.getElementById('sg-parts').value,10);
+    if(parts>=1) texts = splitRangeIntoLabels(detected.from, detected.to, parts, (s,e)=> s===e?`Page ${s}`:`Page ${s}-${e}`);
+  } else if(detected.type==='percent'){
+    const parts = parseInt(document.getElementById('sg-parts').value,10);
+    if(parts>=1) texts = splitRangeIntoLabels(detected.from, detected.to, parts, (s,e)=> s===e?`${s}%`:`${s}-${e}%`);
+  } else {
+    const start = parseInt(document.getElementById('sg-ch-start').value,10);
+    const end = parseInt(document.getElementById('sg-ch-end').value,10);
+    const parts = parseInt(document.getElementById('sg-ch-parts').value,10);
+    if(start && end>=start && parts>=1) texts = splitRangeIntoLabels(start,end,parts,(s,e)=> s===e?`Page ${s}`:`Page ${s}-${e}`);
+  }
+  if(!texts.length){ toast("Fill in the fields to generate sub-goals."); return; }
+  const entry = ensureSubGoalEntry(book);
+  texts.forEach(text=>entry.items.push({ id: uid(), text, completed:false }));
+  saveWheelDoc({ subGoals: wheelState.subGoals });
+  renderWheel();
+}
+function markEntireGoalComplete(){
+  const book = wheelUI.subGoalEditFor;
+  if(!book) return;
+  if(!confirm(`Mark "${book.goalLabel}" as complete? This also marks it done in Goals.`)) return;
+  const viewDate = effectiveGoalsDate();
+  const goal = state.goalsMode.find(g=>g.bookTitle===book.title && (g.milestones||[]).some(ms=>ms.label===book.goalLabel && ms.date===viewDate && !ms.completed));
+  if(!goal){ toast("Couldn't find this goal — may already be finished."); wheelUI.subGoalEditFor=null; renderWheel(); return; }
+  const ms = goal.milestones.find(m=>m.label===book.goalLabel && m.date===viewDate && !m.completed);
+  if(ms) ms.completed = true;
+  saveGoalsMode();
+  delete wheelState.subGoals[subGoalKey(book)];
+  saveWheelDoc({ subGoals: wheelState.subGoals });
+  wheelUI.subGoalEditFor = null;
+  wheelUI.lastWinner = null;
+  renderWheel();
+}
+
+/* =====================================================================
+   BINGO  (core board + tokens + rewards, ported from bingo.html;
+   cosmetic-only features — skins, fonts, card themes, cursor trails,
+   and the animated scratch-ticket/slot-machine/loot-box visuals — are
+   collapsed into their plain instant token-math equivalents, since
+   they're pure animation and don't apply on an e-ink screen.)
+===================================================================== */
+const defaultHealthDatabase = [
+  "Drink a full glass of water","Do 10 pushups","Stretch for 5 minutes","Clear inbox clutter",
+  "Write down 3 gratitudes","Take a tech-free break","Organize desktop icons","Step outside for fresh air",
+  "Learn one new word","Call a family member","Do a quick posture check","Plan tomorrow's priorities",
+  "Eat a piece of fruit","Listen to a favorite song","Compliment a colleague","Do 20 jumping jacks",
+  "Meditate for 3 minutes","Clean your workspace desk","Do eye strain relief exercises","Take 10 deep belly breaths",
+  "Drink a cup of herbal tea","Do a 5-minute core stretch","Wash your face with cold water","Write down a daily affirmation",
+  "Do 15 squats","Tidy up your phone apps","Open window for fresh ventilation","Eat a handful of nuts",
+  "Do a shoulder mobility roll","Practice standing on one leg for 1 minute","Write a kind text to a friend","Take a short 10-minute walk",
+  "Do a quick digital declutter","Prepare gym clothes for tomorrow","Eat a vegetable-rich snack","Do a wrist and finger stretch",
+  "Review weekly self-care goals","Do 10 wall push-ups","Smile in the mirror for 30 seconds","Hydrate with electrolyte water",
+  "Do a 3-minute gratitude journal entry","Take a moment of complete silence","Do neck rotation stretches","Adjust chair ergonomics",
+  "Snack on fresh berries","Do a 5-minute room cleanup","Write down tomorrow's main objective","Practice deep diaphragmatic breathing",
+  "Do a quick energy check-in","Step away from screen for 5 minutes"
+];
+const defaultReadingDatabase = (()=>{
+  const list = [];
+  for(let i=1;i<=6;i++) list.push(`Read for ${i} minute${i>1?'s':''}`);
+  list.push("Read 1 chapter","Read 2 chapters");
+  for(let i=1;i<=6;i++) list.push(`Read ${i} page${i>1?'s':''}`);
+  for(let i=1;i<=5;i++) list.push(`Read ${i} page${i>1?'s':''} of your favorite book`);
+  for(let i=1;i<=5;i++) list.push(`Read ${i} page${i>1?'s':''} of your least favorite book`);
+  list.push("Listen to 1 chapter of audiobook");
+  for(let i=1;i<=10;i++) list.push(`Listen to ${i} minute${i>1?'s':''} of audiobook`);
+  for(let i=1;i<=10;i++) list.push(`Listen to ${i} minute${i>1?'s':''} of favorite audiobook`);
+  for(let i=1;i<=10;i++) list.push(`Listen to ${i} minute${i>1?'s':''} of least favorite audiobook`);
+  return list;
+})();
+const baseRewardsList = [
+  { id:'sweet_treat', name:'Sweet Treat IRL', cost:100, desc:'Treat yourself to your favorite coffee, pastry, or snack.', icon:'🍩' },
+  { id:'breather', name:'5-Minute Work Breather', cost:100, desc:'Step away completely guilt-free for 5 minutes.', icon:'🧘' },
+  { id:'scratch_ticket', name:'Mystery Scratch Ticket', cost:50, desc:'Reveals a random prize between 1 and 100 tokens.', icon:'🎟️' },
+  { id:'task_skip', name:'Task Skip Pass', cost:20, desc:'Pick any uncompleted task and mark it done instantly.', icon:'⚡' },
+  { id:'shekel_coupon', name:'5 Shekel Coupon', cost:300, desc:'Add 5 shekel for free to your fun budget.', icon:'💵' },
+  { id:'mystery_box', name:'Mystery Loot Box', cost:120, desc:'Chance at a jackpot, a small haul, or a bonus task.', icon:'📦' },
+  { id:'shuffle_pass', name:'One-Click Shuffle Pass', cost:65, desc:'Shuffles your uncompleted tasks into a new order.', icon:'🔀' },
+  { id:'slot_spin', name:'Slot Machine Spin', cost:80, desc:'3-symbol pull for a chance to win big or nothing.', icon:'🎰' },
+  { id:'grid_resizer', name:'Board Shrinker', cost:50, desc:'Shrinks your board from 16 tasks down to a speedy 9.', icon:'📐' }
+];
+
+let bingo = {
+  tokens:50, tasks:[], cellStates:[], inventory:[],
+  healthDb:[...defaultHealthDatabase], readingDb:[...defaultReadingDatabase],
+  healthCount:5, readingCount:11, compact3x3:false, loaded:false
+};
+let bingoUI = { tab: (['board','shop','inventory','setup'].includes(lsGet('shelf:bingoTab')) ? lsGet('shelf:bingoTab') : 'board'), editingIndex:null };
+
+function generateHealthReadingTasks(){
+  const h = [...bingo.healthDb].sort(()=>Math.random()-0.5).slice(0, bingo.healthCount);
+  const r = [...bingo.readingDb].sort(()=>Math.random()-0.5).slice(0, bingo.readingCount);
+  return [...h, ...r].sort(()=>Math.random()-0.5);
+}
+function bingoLines(){
+  const n = bingo.compact3x3 ? 3 : 4;
+  const lines = [];
+  for(let r=0;r<n;r++){ const row=[]; for(let c=0;c<n;c++) row.push(r*n+c); lines.push(row); }
+  for(let c=0;c<n;c++){ const col=[]; for(let r=0;r<n;r++) col.push(r*n+c); lines.push(col); }
+  const d1=[],d2=[];
+  for(let i=0;i<n;i++){ d1.push(i*n+i); d2.push(i*n+(n-1-i)); }
+  lines.push(d1,d2);
+  return lines;
+}
+let bingoCompletedLines = new Set();
+function recomputeCompletedLinesSilently(){
+  bingoCompletedLines.clear();
+  bingoLines().forEach((line,idx)=>{ if(line.every(i=>bingo.cellStates[i]===2)) bingoCompletedLines.add(idx); });
+}
+function checkBingoLines(){
+  bingoLines().forEach((line,idx)=>{
+    if(line.every(i=>bingo.cellStates[i]===2) && !bingoCompletedLines.has(idx)){
+      bingoCompletedLines.add(idx);
+      const roll = Math.random();
+      let won;
+      if(roll<0.01){ won = Math.floor(Math.random()*51)+50; toast(`JACKPOT BINGO! +${won} tokens!`); }
+      else { won = Math.floor(Math.random()*20)+1; toast(`Bingo line complete! +${won} tokens!`); }
+      bingo.tokens += won;
+    }
+  });
+}
+function saveBingoDoc(patch){
+  BINGO_DOC.set(patch, { merge:true }).catch(err=>{ console.error(err); toast("Bingo save failed."); });
+}
+function saveBingoState(){
+  saveBingoDoc({
+    bingo_tokens: String(bingo.tokens),
+    bingo_tasks: JSON.stringify(bingo.tasks),
+    bingo_cell_states: JSON.stringify(bingo.cellStates),
+    bingo_inventory: JSON.stringify(bingo.inventory)
+  });
+}
+
+function renderBingoAll(){
+  const el = document.getElementById('bingo-content');
+  if(!bingo.loaded){ el.innerHTML="Loading…"; return; }
+  let html = `<p class="center"><b>Tokens: ${bingo.tokens}</b></p>`;
+  html += `<div class="subtabs">
+    <button class="${bingoUI.tab==='board'?'active':''}" data-action="bingo-tab" data-tab="board">Board</button>
+    <button class="${bingoUI.tab==='shop'?'active':''}" data-action="bingo-tab" data-tab="shop">Shop</button>
+    <button class="${bingoUI.tab==='inventory'?'active':''}" data-action="bingo-tab" data-tab="inventory">Inventory</button>
+    <button class="${bingoUI.tab==='setup'?'active':''}" data-action="bingo-tab" data-tab="setup">Setup</button>
+  </div>`;
+  if(bingoUI.tab==='board') html += bingoBoardHTML();
+  else if(bingoUI.tab==='shop') html += bingoShopHTML();
+  else if(bingoUI.tab==='inventory') html += bingoInventoryHTML();
+  else html += bingoSetupHTML();
+  el.innerHTML = html;
+}
+
+function bingoBoardHTML(){
+  if(!bingo.tasks.length){
+    return `<p class="muted">No board yet.</p><button class="big" data-action="bingo-newboard">Generate a Health &amp; Reading board</button>`;
+  }
+  const cols = bingo.compact3x3 ? 3 : 4;
+  const cells = bingo.tasks.map((task,i)=>{
+    const state = bingo.cellStates[i]||0;
+    const mark = state===2 ? '☑' : state===1 ? '◐' : '☐';
+    return `<div class="bingocell-outer">
+      <div class="bingocell state-${state}" data-action="bingo-toggle" data-idx="${i}">
+        <div><span class="mark">${mark}</span><span class="txt">${esc(task)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  let editHTML = '';
+  if(bingoUI.editingIndex!==null){
+    editHTML = `<div class="box">
+      <label>Edit task text (#${bingoUI.editingIndex+1})</label>
+      <textarea id="bingo-edit-text" rows="2" class="full">${esc(bingo.tasks[bingoUI.editingIndex])}</textarea>
+      <div class="btnrow">
+        <button data-action="bingo-edit-save">Save</button>
+        <button data-action="bingo-edit-cancel">Cancel</button>
+      </div>
+    </div>`;
+  }
+  const editPicker = `<div class="btnrow" style="margin-top:2px;">
+      <select id="bingo-edit-select" class="full">
+        ${bingo.tasks.map((t,i)=>`<option value="${i}">#${i+1}: ${esc(t.length>36?t.slice(0,36)+'…':t)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="btnrow">
+      <button class="small" data-action="bingo-edit-selected">Edit selected task</button>
+    </div>`;
+  return `${editHTML}<div class="bingogrid cols${cols}">${cells}</div>
+    ${editPicker}
+    <div class="btnrow" style="margin-top:10px;">
+      <button data-action="bingo-newboard">New board</button>
+    </div>`;
+}
+function bingoShopHTML(){
+  return baseRewardsList.map(item=>`
+    <div class="item">
+      <div class="item-title">${item.icon} ${esc(item.name)} — ${item.cost} tk</div>
+      <div class="item-sub">${esc(item.desc)}</div>
+      <button class="small" data-action="bingo-buy" data-id="${item.id}" ${bingo.tokens<item.cost?'disabled':''}>Purchase</button>
+    </div>`).join('');
+}
+function bingoInventoryHTML(){
+  if(!bingo.inventory.length) return `<p class="muted">Inventory is empty — purchase rewards from the Shop.</p>`;
+  return bingo.inventory.map((item,idx)=>`
+    <div class="item">
+      <div class="item-title">${item.icon} ${esc(item.name)}</div>
+      <div class="item-sub">${esc(item.desc)}</div>
+      <button class="small" data-action="bingo-redeem" data-idx="${idx}">Redeem / Use</button>
+    </div>`).join('');
+}
+function bingoSetupHTML(){
+  return `<div class="box">
+    <label>Health tasks (1-15)</label>
+    <input type="number" id="bingo-hcount" min="1" max="15" value="${bingo.healthCount}" class="full">
+    <label>Reading tasks (1-15, health+reading should total 16)</label>
+    <input type="number" id="bingo-rcount" min="1" max="15" value="${bingo.readingCount}" class="full">
+    <button class="big" data-action="bingo-save-counts">Save &amp; generate new board</button>
+  </div>
+  <div class="box">
+    <p class="muted">Board size: ${bingo.compact3x3?'3×3 (9 tasks)':'4×4 (16 tasks)'}</p>
+    ${bingo.compact3x3 ? `<button data-action="bingo-restore-size">Restore to 4×4</button>` : ''}
+  </div>`;
+}
+
+document.getElementById('bingo-content').addEventListener('click', e=>{
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const action = t.getAttribute('data-action');
+  if(action==='bingo-tab'){ bingoUI.tab = t.getAttribute('data-tab'); lsSet('shelf:bingoTab', bingoUI.tab); bingoUI.editingIndex=null; renderBingoAll(); }
+  else if(action==='bingo-newboard'){
+    bingo.tasks = generateHealthReadingTasks();
+    bingo.cellStates = Array(bingo.tasks.length).fill(0);
+    bingoCompletedLines.clear();
+    saveBingoState(); renderBingoAll();
+    toast("New board generated.");
+  }
+  else if(action==='bingo-toggle'){
+    const idx = Number(t.getAttribute('data-idx'));
+    bingo.cellStates[idx] = (bingo.cellStates[idx]+1)%3;
+    checkBingoLines(); saveBingoState(); renderBingoAll();
+  }
+  else if(action==='bingo-edit'){ bingoUI.editingIndex = Number(t.getAttribute('data-idx')); renderBingoAll(); }
+  else if(action==='bingo-edit-selected'){
+    const sel = document.getElementById('bingo-edit-select');
+    bingoUI.editingIndex = sel ? Number(sel.value) : 0;
+    renderBingoAll();
+  }
+  else if(action==='bingo-edit-cancel'){ bingoUI.editingIndex = null; renderBingoAll(); }
+  else if(action==='bingo-edit-save'){
+    const idx = bingoUI.editingIndex;
+    const newText = document.getElementById('bingo-edit-text').value.trim();
+    if(newText){
+      const oldText = bingo.tasks[idx];
+      bingo.tasks[idx] = newText;
+      const hi = bingo.healthDb.indexOf(oldText); if(hi!==-1){ bingo.healthDb[hi]=newText; saveBingoDoc({ bingo_health_db_overrides: JSON.stringify(bingo.healthDb) }); }
+      const ri = bingo.readingDb.indexOf(oldText); if(ri!==-1){ bingo.readingDb[ri]=newText; saveBingoDoc({ bingo_reading_db_overrides: JSON.stringify(bingo.readingDb) }); }
+      saveBingoState();
+    }
+    bingoUI.editingIndex = null; renderBingoAll();
+  }
+  else if(action==='bingo-buy'){
+    const id = t.getAttribute('data-id');
+    const item = baseRewardsList.find(r=>r.id===id);
+    if(bingo.tokens<item.cost){ alert('Not enough tokens.'); return; }
+    bingo.tokens -= item.cost;
+    bingo.inventory.push({ ...item, uuid: uid() });
+    saveBingoState(); renderBingoAll();
+    toast(`Purchased "${item.name}".`);
+  }
+  else if(action==='bingo-redeem'){
+    const idx = Number(t.getAttribute('data-idx'));
+    const item = bingo.inventory[idx];
+    bingo.inventory.splice(idx,1);
+    redeemBingoItem(item);
+    saveBingoState(); renderBingoAll();
+  }
+  else if(action==='bingo-save-counts'){
+    const h = Math.max(1, Math.min(15, Number(document.getElementById('bingo-hcount').value)||5));
+    const r = Math.max(1, Math.min(15, Number(document.getElementById('bingo-rcount').value)||11));
+    bingo.healthCount = h; bingo.readingCount = r;
+    saveBingoDoc({ bingo_health_count:String(h), bingo_reading_count:String(r) });
+    bingo.tasks = generateHealthReadingTasks();
+    bingo.cellStates = Array(bingo.tasks.length).fill(0);
+    bingoCompletedLines.clear();
+    saveBingoState();
+    bingoUI.tab='board'; renderBingoAll();
+  }
+  else if(action==='bingo-restore-size'){
+    bingo.compact3x3 = false;
+    bingo.tasks = generateHealthReadingTasks();
+    bingo.cellStates = Array(bingo.tasks.length).fill(0);
+    bingoCompletedLines.clear();
+    saveBingoState();
+    bingoUI.tab='board'; renderBingoAll();
+  }
+});
+function redeemBingoItem(item){
+  switch(item.id){
+    case 'scratch_ticket': {
+      const won = Math.floor(Math.random()*100)+1;
+      bingo.tokens += won; toast(`Scratch ticket: +${won} tokens!`);
+      break;
+    }
+    case 'task_skip': {
+      const uncompleted = bingo.tasks.map((t,i)=>({t,i})).filter(o=>bingo.cellStates[o.i]!==2);
+      if(!uncompleted.length){ toast("All tasks already complete!"); break; }
+      const pick = prompt("Type the exact text of the task to skip:\n\n"+uncompleted.map(o=>"• "+o.t).join('\n'));
+      const match = uncompleted.find(o=>o.t===pick);
+      if(match){ bingo.cellStates[match.i]=2; checkBingoLines(); toast("Task skipped — marked complete."); }
+      else toast("No matching task — nothing skipped.");
+      break;
+    }
+    case 'shekel_coupon': toast("5 Shekel Coupon redeemed! Added to your fun budget."); break;
+    case 'mystery_box': {
+      const roll = Math.random();
+      if(roll<0.2){ toast("Empty box — gamble lost."); }
+      else if(roll<0.5){ const w=Math.floor(Math.random()*50)+10; bingo.tokens+=w; toast(`Small haul! +${w} tokens.`); }
+      else if(roll<0.8){ bingo.tokens+=50; toast("Bonus task reward — +50 tokens!"); }
+      else { const w=Math.floor(Math.random()*200)+150; bingo.tokens+=w; toast(`Massive jackpot! +${w} tokens!`); }
+      break;
+    }
+    case 'shuffle_pass': {
+      const idxs = []; bingo.tasks.forEach((_,i)=>{ if(bingo.cellStates[i]!==2) idxs.push(i); });
+      if(idxs.length<2){ toast("Not enough uncompleted tasks to shuffle."); break; }
+      const ts = idxs.map(i=>bingo.tasks[i]), sts = idxs.map(i=>bingo.cellStates[i]);
+      for(let i=ts.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [ts[i],ts[j]]=[ts[j],ts[i]]; [sts[i],sts[j]]=[sts[j],sts[i]]; }
+      idxs.forEach((idx,i)=>{ bingo.tasks[idx]=ts[i]; bingo.cellStates[idx]=sts[i]; });
+      toast("Board shuffled.");
+      break;
+    }
+    case 'slot_spin': {
+      const symbols=['💎','🍒','🔔','🍀','7️⃣'];
+      const s1=symbols[Math.floor(Math.random()*5)], s2=symbols[Math.floor(Math.random()*5)], s3=symbols[Math.floor(Math.random()*5)];
+      if(s1===s2 && s2===s3){ const win = s1==='7️⃣'?300:150; bingo.tokens+=win; toast(`${s1}${s2}${s3} JACKPOT! +${win} tokens!`); }
+      else if(s1===s2||s2===s3||s1===s3){ bingo.tokens+=40; toast(`${s1}${s2}${s3} Mini win! +40 tokens.`); }
+      else toast(`${s1}${s2}${s3} No match.`);
+      break;
+    }
+    case 'grid_resizer': {
+      if(bingo.compact3x3){ toast("Board already 3×3."); break; }
+      bingo.compact3x3 = true;
+      bingo.tasks = bingo.tasks.slice(0,9);
+      bingo.cellStates = bingo.cellStates.slice(0,9);
+      bingoCompletedLines.clear();
+      toast("Board resized to 3×3.");
+      break;
+    }
+    default: toast(`Redeemed: ${item.name}`);
+  }
+}
+
+/* =====================================================================
+   LOAD
+===================================================================== */
+async function loadBingo(){
+  try{
+    const snap = await BINGO_DOC.get();
+    const d = snap.exists ? snap.data() : {};
+    bingo.tokens = parseInt(d.bingo_tokens) || 50;
+    bingo.inventory = d.bingo_inventory ? JSON.parse(d.bingo_inventory) : [];
+    bingo.healthDb = d.bingo_health_db_overrides ? JSON.parse(d.bingo_health_db_overrides) : [...defaultHealthDatabase];
+    bingo.readingDb = d.bingo_reading_db_overrides ? JSON.parse(d.bingo_reading_db_overrides) : [...defaultReadingDatabase];
+    bingo.healthCount = d.bingo_health_count ? parseInt(d.bingo_health_count) : 5;
+    bingo.readingCount = d.bingo_reading_count ? parseInt(d.bingo_reading_count) : 11;
+    bingo.tasks = d.bingo_tasks ? JSON.parse(d.bingo_tasks) : generateHealthReadingTasks();
+    const rawStates = d.bingo_cell_states ? JSON.parse(d.bingo_cell_states) : null;
+    bingo.cellStates = (rawStates && rawStates.length) ? rawStates.map(s=>s===true?2:(s===false?0:s)) : Array(bingo.tasks.length).fill(0);
+    bingo.compact3x3 = bingo.tasks.length===9;
+    recomputeCompletedLinesSilently();
+  }catch(err){
+    console.error("Bingo load failed", err);
+  }
+  bingo.loaded = true;
+  if(activeSection==='bingo') renderBingoAll();
+}
+
+function setSyncLine(msg){ document.getElementById('syncline').textContent = msg; }
+
+SHARED_DOC.onSnapshot(snap=>{
+  if(snap.exists){
+    const d = snap.data();
+    state.books = Array.isArray(d.books) ? d.books : [];
+    state.wishlist = Array.isArray(d.wishlist) ? d.wishlist : [];
+    state.goalsYearly = (d.goals && typeof d.goals==='object') ? d.goals : {};
+    state.goalsMode = Array.isArray(d.goalsMode) ? d.goalsMode : [];
+  }
+  state.loaded = true;
+  setSyncLine('');
+  if(activeSection==='home') renderHome();
+  if(activeSection==='goals') renderGoals();
+  if(activeSection==='wheel') renderWheel();
+}, err=>{
+  console.error(err);
+  setSyncLine('⚠ Offline — showing last known data.');
+});
+
+WHEEL_DOC.onSnapshot(snap=>{
+  if(snap.exists){
+    const d = snap.data();
+    wheelState.currentSpins = Number(d.currentSpins)||0;
+    wheelState.subGoals = (d.subGoals && typeof d.subGoals==='object') ? d.subGoals : {};
+    wheelState.goalsViewDate = d.goalsViewDate || null;
+  }
+  wheelState.loaded = true;
+  if(activeSection==='wheel') renderWheel();
+}, err=>console.error(err));
+
+loadBingo();
+renderNav();
+goSection(activeSection);
+</script>
+</body>
+</html>
