@@ -455,8 +455,8 @@ function goalFormHTML(){
     <div id="gf-percentage-fields">
       <label>Percentage range</label>
       <div class="row">
-        <input type="number" id="gf-pct-from" min="0" max="99" value="${goalsUI._pctFrom??0}" placeholder="From %">
-        <input type="number" id="gf-pct-to" min="1" max="100" value="${goalsUI._pctTo??100}" placeholder="To %">
+        <input type="number" id="gf-pct-from" min="0" max="99" value="${goalsUI._pctFrom!=null?goalsUI._pctFrom:0}" placeholder="From %">
+        <input type="number" id="gf-pct-to" min="1" max="100" value="${goalsUI._pctTo!=null?goalsUI._pctTo:100}" placeholder="To %">
       </div>
     </div>
 
